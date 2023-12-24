@@ -35,7 +35,6 @@ public class UserController {
     @Autowired
     UserService userService;
 
-    @Auth
     @GetMapping("/{id}")
     public Object test(@PathVariable("id") Long id) {
         return userService.getById(id);
@@ -62,7 +61,6 @@ public class UserController {
         return Result.fail("输入的用户信息不正确");
     }
 
-    @Auth(role = "admin")
     @GetMapping("/changePwd")
     public Object changePwd(){
         return Result.succ("修改密码成功",null);
