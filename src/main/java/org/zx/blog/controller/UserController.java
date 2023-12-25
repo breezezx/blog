@@ -6,6 +6,9 @@ import cn.hutool.jwt.JWTUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import jakarta.servlet.http.HttpServletRequest;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.subject.Subject;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -43,23 +46,31 @@ public class UserController {
 
     @PostMapping("/login")
     public Object login(@RequestBody User userinfo){
-        QueryWrapper<User> queryWrapper=new QueryWrapper<User>();
-        HashMap<String ,Object> map=new HashMap<>();
-        map.put("username",userinfo.getUsername());
-        map.put("password",userinfo.getPassword());
-        System.out.println(map);
-        queryWrapper.allEq(map);
-        User user = userService.getOne(queryWrapper);
-        if(user !=null){
-            //登录成功
-            HashMap<String ,Object> tokenmap =new HashMap<>();
-            tokenmap.put("username",userinfo.getUsername());
-            tokenmap.put("logintime",new Date());
-            String token = JWTUtil.createToken(tokenmap,"zhangxin".getBytes());
-            return Result.succ("登录成功",token);
-
+//        这部分是常规的mybatis查数据然后生成一个jwt给前端完成登录
+//        QueryWrapper<User> queryWrapper=new QueryWrapper<User>();
+//        HashMap<String ,Object> map=new HashMap<>();
+//        map.put("username",userinfo.getUsername());
+//        map.put("password",userinfo.getPassword());
+//        System.out.println(map);
+//        queryWrapper.allEq(map);
+//        User user = userService.getOne(queryWrapper);
+//        if(user !=null){
+//            //登录成功
+//            HashMap<String ,Object> tokenmap =new HashMap<>();
+//            tokenmap.put("username",userinfo.getUsername());
+//            tokenmap.put("logintime",new Date());
+//            String token = JWTUtil.createToken(tokenmap,"zhangxin".getBytes());
+//            return Result.succ("登录成功",token);
+//
+//        }
+//        return Result.fail("输入的用户信息不正确");
+        Subject currentUser= SecurityUtils.getSubject();
+        if(!currentUser.isAuthenticated()){
+            UsernamePasswordToken token= new UsernamePasswordToken(userinfo.getUsername(),userinfo.getPassword());
+            token.setRememberMe(true);
+            currentUser.login(token);
         }
-        return Result.fail("输入的用户信息不正确");
+
     }
 
     @Auth(role = "admin")
